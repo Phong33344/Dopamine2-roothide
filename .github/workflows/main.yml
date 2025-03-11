@@ -1,0 +1,29 @@
+name: GitHub VPS
+
+on: workflow_dispatch  # Chạy VPS khi bấm nút trên GitHub Actions
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cài đặt môi trường
+        run: |
+          sudo apt update
+          sudo apt install -y curl openssh-server
+          sudo systemctl start ssh
+
+      - name: Cài đặt Cloudflare Tunnel
+        run: |
+          curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+          chmod +x cloudflared
+          sudo mv cloudflared /usr/local/bin/
+
+      - name: Chạy Cloudflare Tunnel
+        run: |
+          cloudflared tunnel --url ssh://localhost:22 > ssh_tunnel.log 2>&1 &
+          sleep 5
+          cat ssh_tunnel.log
+
+      - name: Giữ VPS chạy lâu hơn
+        run: sleep 21600  # 6 giờ
